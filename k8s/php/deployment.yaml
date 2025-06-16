@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-app
+  namespace: woodbridge-designs
+  labels:
+    app: php-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: php-app
+  template:
+    metadata:
+      labels:
+        app: php-app
+    spec:
+      containers:
+        - name: php-fpm
+          image: woodbridge/php-laravel
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: "Africa/Johannesburg"
+          volumeMounts:
+            - name: app-code
+              mountPath: /var/www/html
+            - name: fpm-config
+              mountPath: /usr/local/etc/php-fpm.d/www.conf
+              subPath: www.conf
+            - name: xdebug-config
+              mountPath: /usr/local/etc/php/conf.d/xdebug.ini
+              subPath: xdebug.ini
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: app-code
+          persistentVolumeClaim:
+            claimName: woodbridge-app-code
+        - name: fpm-config
+          configMap:
+            name: fpm-config
+        - name: xdebug-config
+          configMap:
+            name: php-xdebug

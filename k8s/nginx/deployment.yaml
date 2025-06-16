@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: woodbridge-designs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: "Africa/Johannesburg"
+          volumeMounts:
+            - name: app-code
+              mountPath: /var/www/html
+            - name: nginx-base
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: nginx-app
+              mountPath: /etc/nginx/conf.d/app.conf
+              subPath: app.conf
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "nginx -s quit"]
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "nginx -t"]
+      volumes:
+        - name: app-code
+          persistentVolumeClaim:
+            claimName: woodbridge-app-code
+        - name: nginx-base
+          configMap:
+            name: nginx-base
+        - name: nginx-app
+          configMap:
+            name: nginx-app

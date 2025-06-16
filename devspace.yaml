@@ -1,0 +1,82 @@
+version: v2beta1
+name: woodbridge-designs
+pipelines:
+  dev:
+    run: |-
+      run_dependencies --all       # 1. Deploy any projects this project needs (see "dependencies")
+      ensure_pull_secrets --all    # 2. Ensure pull secrets
+      build_images --all           # 3. Build, tag (latest) and push all images (see "images")
+      create_deployments --all     # 4. Deploy Helm charts and manifests specfied as "deployments"
+      start_dev --all              # 5. Start dev mode "app" (see "dev" section)
+  deploy:
+    run: |-
+      run_dependencies --all                            # 1. Deploy any projects this project needs (see "dependencies")
+      ensure_pull_secrets --all                         # 2. Ensure pull secrets
+      build_images --all -t $(git describe --always)    # 3. Build, tag (git commit hash) and push all images (see "images")
+      create_deployments --all                          # 4. Deploy Helm charts and manifests specfied as "deployments"
+images:
+  app:
+    image: woodbridge/php-laravel
+    dockerfile: ../../hosting/php/8.3/Dockerfile.dev
+    context: .
+deployments:
+  app:
+    kubectl:
+      manifests:
+        - k8s/configmaps
+        - k8s/volume
+        - k8s/php
+        - k8s/nginx
+        - k8s/ingress
+  shared-deps:
+    namespace: woodbridge-designs
+    kubectl:
+      manifests:
+        - ../../hosting/k8s/redis
+        - ../../hosting/k8s/nginx
+dev:
+  nginx:
+    labelSelector:
+      app: nginx
+    sync:
+      - path: ./:/var/www/html
+        uploadExcludePaths:
+          - node_modules
+          - .git
+          - vendor
+          - storage/logs
+          - storage/framework
+          - public/storage
+    logs:
+      enabled: true
+      lastLines: 50
+    ssh:
+      enabled: true
+  app:
+    labelSelector:
+      app: php-app
+    sync:
+      - path: ./:/var/www/html
+        uploadExcludePaths:
+          - node_modules
+          - .git
+          - vendor
+          - storage/logs
+          - storage/framework
+          - public/storage
+    terminal:
+      command: ./devspace_start.sh
+    ssh:
+      enabled: true
+    proxyCommands:
+      - command: devspace
+      - command: kubectl
+      - command: helm
+      - gitCredentials: true
+commands:
+  migrate-db:
+    command: php artisan migrate --force
+  db-seed:
+    command: php artisan db:seed
+  cache-clear:
+    command: php artisan config:clear && php artisan cache:clear

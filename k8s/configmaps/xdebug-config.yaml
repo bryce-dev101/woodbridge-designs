@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-xdebug
+  namespace: woodbridge-designs
+data:
+  xdebug.ini: |
+    xdebug.mode=debug
+    xdebug.start_with_request=yes
+    xdebug.client_host=192.168.110.140
+    xdebug.client_port=9003
+    xdebug.log=/tmp/xdebug.log
