@@ -4,7 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite --host woodbridge-designs.local"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0",

@@ -15,6 +15,23 @@ spec:
       labels:
         app: php-app
     spec:
+      volumes:
+        - name: app-code
+          persistentVolumeClaim:
+            claimName: woodbridge-code
+        - name: fpm-config
+          configMap:
+            name: fpm-config
+        - name: xdebug-config
+          configMap:
+            name: php-xdebug
+      initContainers:
+        - name: fix-perms
+          image: busybox
+          command: ["sh", "-c", "chown -R 33:33 /var/www/html"]
+          volumeMounts:
+            - name: app-code
+              mountPath: /var/www/html
       containers:
         - name: php-fpm
           image: woodbridge/php-laravel
@@ -38,13 +55,3 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
-      volumes:
-        - name: app-code
-          persistentVolumeClaim:
-            claimName: woodbridge-app-code
-        - name: fpm-config
-          configMap:
-            name: fpm-config
-        - name: xdebug-config
-          configMap:
-            name: php-xdebug

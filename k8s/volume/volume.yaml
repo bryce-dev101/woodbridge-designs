@@ -1,11 +1,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: woodbridge-app-code
+  name: woodbridge-code
   namespace: woodbridge-designs
 spec:
   accessModes:
     - ReadWriteMany
+  storageClassName: standard
   resources:
     requests:
       storage: 1Gi

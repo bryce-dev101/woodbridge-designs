@@ -52,6 +52,11 @@ dev:
       lastLines: 50
     ssh:
       enabled: true
+    proxyCommands:
+      - command: devspace
+      - command: kubectl
+      - command: helm
+      - gitCredentials: true
   app:
     labelSelector:
       app: php-app
@@ -73,10 +78,18 @@ dev:
       - command: kubectl
       - command: helm
       - gitCredentials: true
+    open:
+      - url: http://woodbridge-designs.local
 commands:
   migrate-db:
-    command: php artisan migrate --force
+    description: "Run Laravel migrations in container"
+    command: |
+      devspace enter -- php artisan migrate --force
   db-seed:
-    command: php artisan db:seed
+    description: "Run Laravel DB seeder in container"
+    command: |
+      devspace enter -- php artisan db:seed
   cache-clear:
-    command: php artisan config:clear && php artisan cache:clear
+    description: "Clear Laravel config and cache in container"
+    command: |
+      devspace enter -- sh -c "php artisan config:clear && php artisan cache:clear"

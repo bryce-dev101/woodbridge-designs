@@ -13,6 +13,23 @@ spec:
       labels:
         app: nginx
     spec:
+      volumes:
+        - name: app-code
+          persistentVolumeClaim:
+            claimName: woodbridge-code
+        - name: nginx-base
+          configMap:
+            name: nginx-base
+        - name: nginx-app
+          configMap:
+            name: nginx-app
+      initContainers:
+        - name: fix-perms
+          image: busybox
+          command: ["sh", "-c", "chown -R 33:33 /var/www/html"]
+          volumeMounts:
+            - name: app-code
+              mountPath: /var/www/html
       containers:
         - name: nginx
           image: nginx:latest
@@ -43,13 +60,3 @@ spec:
             postStart:
               exec:
                 command: ["/bin/sh", "-c", "nginx -t"]
-      volumes:
-        - name: app-code
-          persistentVolumeClaim:
-            claimName: woodbridge-app-code
-        - name: nginx-base
-          configMap:
-            name: nginx-base
-        - name: nginx-app
-          configMap:
-            name: nginx-app

@@ -1,6 +1,12 @@
 #!/bin/bash
 set +e  # Continue on errors
 
+mkdir -p /var/www/html/storage/logs
+mkdir -p /var/www/html/storage/framework/{cache,sessions,testing,views}
+mkdir -p /var/www/html/bootstrap/cache
+
+touch /var/www/html/storage/logs/xdebug.log
+
 # Ensure file permissions
 chown -R www-data:www-data .
 
@@ -57,7 +63,7 @@ if [ -z "$BASH" ]; then export PS1="$ "; fi
 # Include project's bin/ folder in PATH
 export PATH="./bin:$PATH"
 
-php-fpm
+php-fpm &
 
 # Open shell
 bash --norc
